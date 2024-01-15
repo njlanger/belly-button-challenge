@@ -73,23 +73,49 @@ d3.json(url).then(function(responseData) {
 
     Plotly.newPlot('bubble', bubbleData, bubbleLayout);
 
-  // Display sample metadata
-  displayMetadata(data.metadata[index]);
-}
+    // Display sample metadata
+    displayMetadata(data.metadata[index]);
 
-// Function to display sample metadata
-function displayMetadata(metadata) {
-  // Select the "sample-metadata" div
-  const metadataDiv = d3.select("#sample-metadata");
+    // Extract washing frequency data
+    const washingFrequency = data.metadata[index].wfreq;
 
-  // Clear existing content
-  metadataDiv.html("");
+    // Update the gauge chart value
+    gaugeData[0].value = washingFrequency;
 
-  // Iterate through key-value pairs and display them
-  Object.entries(metadata).forEach(([key, value]) => {
-    metadataDiv.append("p").text(`${key}: ${value}`);
-  });
-}
+    // Plotly update for the gauge chart
+    Plotly.newPlot('gauge', gaugeData, gaugeLayout);
+  }
+
+  // Function to display sample metadata
+  function displayMetadata(metadata) {
+    // Select the "sample-metadata" div
+    const metadataDiv = d3.select("#sample-metadata");
+
+    // Clear existing content
+    metadataDiv.html("");
+
+    // Iterate through key-value pairs and display them
+    Object.entries(metadata).forEach(([key, value]) => {
+      metadataDiv.append("p").text(`${key}: ${value}`);
+    });
+  }
+
+  // Information for the Gauge -- challenge assignment
+  let gaugeData = [
+    {
+      domain: { x: [0, 1], y: [0, 1] },
+      value: 0, 
+      title: { text: "Weekly Washing Frequency" },
+      type: "indicator",
+      mode: "gauge",
+      gauge: {
+        axis: { range: [0, 9] }, 
+        bar: {color: '#337AB7'}
+      },
+    }
+  ];
+
+  const gaugeLayout = { width: 400, height: 300, margin: { t: 25, b: 25, r: 25, l: 25 } };
 
   // Initialize the page with default subject data
   updateCharts(defaultSubjectID)
@@ -97,4 +123,3 @@ function displayMetadata(metadata) {
       console.error("Error fetching data:", error);
     });
 });
-
