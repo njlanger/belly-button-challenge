@@ -9,8 +9,6 @@ d3.json(url).then(function(responseData) {
   // Assign the data to the global variable
   data = responseData;
 
-  // Assume data is structured like { names: [], samples: [] }
-
   // Default subject ID for initial display
   const defaultSubjectID = data.names[0];
 
@@ -73,14 +71,30 @@ d3.json(url).then(function(responseData) {
       showlegend: false,
     };
 
-    console.log('Bubble Data:', bubbleData); // Add this log
-    console.log('Bubble Layout:', bubbleLayout); // Add this log
-
     Plotly.newPlot('bubble', bubbleData, bubbleLayout);
-  }
+
+  // Display sample metadata
+  displayMetadata(data.metadata[index]);
+}
+
+// Function to display sample metadata
+function displayMetadata(metadata) {
+  // Select the "sample-metadata" div
+  const metadataDiv = d3.select("#sample-metadata");
+
+  // Clear existing content
+  metadataDiv.html("");
+
+  // Iterate through key-value pairs and display them
+  Object.entries(metadata).forEach(([key, value]) => {
+    metadataDiv.append("p").text(`${key}: ${value}`);
+  });
+}
 
   // Initialize the page with default subject data
-  updateCharts(defaultSubjectID);
-}).catch(function(error) {
-  console.error("Error fetching data:", error);
+  updateCharts(defaultSubjectID)
+    .catch(function(error) {
+      console.error("Error fetching data:", error);
+    });
 });
+
