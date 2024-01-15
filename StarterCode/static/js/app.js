@@ -105,7 +105,7 @@ d3.json(url).then(function(responseData) {
     {
       domain: { x: [0, 1], y: [0, 1] },
       value: 0, 
-      title: { text: "Weekly Washing Frequency" },
+      title: { text: "Weekly Washing Frequency (wfreq)" },
       type: "indicator",
       mode: "gauge",
       gauge: {
