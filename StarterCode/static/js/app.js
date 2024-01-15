@@ -6,120 +6,127 @@ const url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/
 
 // Fetch data using D3
 d3.json(url).then(function(responseData) {
-  // Assign the data to the global variable
-  data = responseData;
+  
+// Assign the data to the global variable
+data = responseData;
 
-  // Default subject ID for initial display
-  const defaultSubjectID = data.names[0];
+// Default subject ID for initial display
+const defaultSubjectID = data.names[0];
 
-  // Populate the dropdown menu
-  const dropdown = d3.select("#selDataset");
-  data.names.forEach(function(subjectID) {
-    dropdown.append("option").text(subjectID).property("value", subjectID);
-  });
+// Populate the dropdown menu
+const dropdown = d3.select("#selDataset");
+data.names.forEach(function(subjectID) {
+dropdown.append("option").text(subjectID).property("value", subjectID);
+});
 
-  // Dropdown change event handler
-  window.optionChanged = function(selectedSubjectID) {
-    updateCharts(selectedSubjectID);
-  };
+// Dropdown change event handler
+window.optionChanged = function(selectedSubjectID) {
+updateCharts(selectedSubjectID);
+};
 
-  // Function to update charts based on selected subject ID
-  function updateCharts(subjectID) {
-    // Find index of selected subject ID
-    const index = data.names.indexOf(subjectID);
+// Function to update charts based on selected subject ID
+function updateCharts(subjectID) {
+return new Promise((resolve, reject) => {
 
-    // Extract top 10 OTUs data for bar chart
-    const top10Values = data.samples[index].sample_values.slice(0, 10).reverse();
-    const top10Labels = data.samples[index].otu_ids.slice(0, 10).map(id => `OTU ${id}`).reverse();
-    const hoverTextBar = data.samples[index].otu_labels.slice(0, 10).reverse();
+// Find index of selected subject ID
+const index = data.names.indexOf(subjectID);
 
-    // Bar chart
-    const barData = [{
-      type: 'bar',
-      x: top10Values,
-      y: top10Labels,
-      orientation: 'h',
-      text: hoverTextBar,
-    }];
+// Extract top 10 OTUs data for bar chart
+const top10Values = data.samples[index].sample_values.slice(0, 10).reverse();
+const top10Labels = data.samples[index].otu_ids.slice(0, 10).map(id => `OTU ${id}`).reverse();
+const hoverTextBar = data.samples[index].otu_labels.slice(0, 10).reverse();
 
-    const barLayout = {
-      title: `Top 10 OTUs for Subject ID ${subjectID}`,
-      xaxis: { title: 'Sample Values' },
-      yaxis: { title: 'OTU ID' },
-    };
+// Bar chart
+const barData = [{
+type: 'bar',
+x: top10Values,
+y: top10Labels,
+orientation: 'h',
+text: hoverTextBar,
+}];
 
-    Plotly.newPlot('bar', barData, barLayout);
+const barLayout = {
+title: `Top 10 OTUs for Subject ID ${subjectID}`,
+xaxis: { title: 'Sample Values' },
+yaxis: { title: 'OTU ID' },
+};
 
-    // Extract bubble chart data
-    const bubbleData = [{
-      x: data.samples[index].otu_ids,
-      y: data.samples[index].sample_values,
-      mode: 'markers',
-      marker: {
-        size: data.samples[index].sample_values,
-        color: data.samples[index].otu_ids,
-        colorscale: 'Viridis',
-        opacity: 0.7,
-      },
-      text: data.samples[index].otu_labels,
-    }];
+Plotly.newPlot('bar', barData, barLayout);
 
-    const bubbleLayout = {
-      title: `Bubble Chart for Subject ID ${subjectID}`,
-      xaxis: { title: 'OTU ID' },
-      yaxis: { title: 'Sample Values' },
-      showlegend: false,
-    };
+// Extract bubble chart data
+const bubbleData = [{
+x: data.samples[index].otu_ids,
+y: data.samples[index].sample_values,
+mode: 'markers',
+marker: {
+size: data.samples[index].sample_values,
+color: data.samples[index].otu_ids,
+colorscale: 'Viridis',
+opacity: 0.7,
+},
+text: data.samples[index].otu_labels,
+}];
 
-    Plotly.newPlot('bubble', bubbleData, bubbleLayout);
+const bubbleLayout = {
+title: `Bubble Chart for Subject ID ${subjectID}`,
+xaxis: { title: 'OTU ID' },
+yaxis: { title: 'Sample Values' },
+showlegend: false,
+};
 
-    // Display sample metadata
-    displayMetadata(data.metadata[index]);
+Plotly.newPlot('bubble', bubbleData, bubbleLayout);
 
-    // Extract washing frequency data
-    const washingFrequency = data.metadata[index].wfreq;
+// Display sample metadata
+displayMetadata(data.metadata[index]);
 
-    // Update the gauge chart value
-    gaugeData[0].value = washingFrequency;
+// Extract washing frequency data
+const washingFrequency = data.metadata[index].wfreq;
 
-    // Plotly update for the gauge chart
-    Plotly.newPlot('gauge', gaugeData, gaugeLayout);
-  }
+// Update the gauge chart value
+gaugeData[0].value = washingFrequency;
 
-  // Function to display sample metadata
-  function displayMetadata(metadata) {
-    // Select the "sample-metadata" div
-    const metadataDiv = d3.select("#sample-metadata");
+// Plotly update for the gauge chart
+Plotly.newPlot('gauge', gaugeData, gaugeLayout)
+.then(() => resolve()) 
+.catch(error => reject(error));
+});
+}
 
-    // Clear existing content
-    metadataDiv.html("");
+// Function to display sample metadata
+function displayMetadata(metadata) {
 
-    // Iterate through key-value pairs and display them
-    Object.entries(metadata).forEach(([key, value]) => {
-      metadataDiv.append("p").text(`${key}: ${value}`);
-    });
-  }
+// Select the "sample-metadata" div
+const metadataDiv = d3.select("#sample-metadata");
 
-  // Information for the Gauge -- challenge assignment
-  let gaugeData = [
-    {
-      domain: { x: [0, 1], y: [0, 1] },
-      value: 0, 
-      title: { text: "Weekly Washing Frequency (wfreq)" },
-      type: "indicator",
-      mode: "gauge",
-      gauge: {
-        axis: { range: [0, 9] }, 
-        bar: {color: '#337AB7'}
-      },
-    }
-  ];
+// Clear existing content
+metadataDiv.html("");
 
-  const gaugeLayout = { width: 400, height: 300, margin: { t: 25, b: 25, r: 25, l: 25 } };
+// Iterate through key-value pairs and display them
+Object.entries(metadata).forEach(([key, value]) => {
+metadataDiv.append("p").text(`${key}: ${value}`);
+});
+}
 
-  // Initialize the page with default subject data
-  updateCharts(defaultSubjectID)
-    .catch(function(error) {
-      console.error("Error fetching data:", error);
-    });
+// Information for the Gauge -- challenge assignment
+let gaugeData = [
+{
+domain: { x: [0, 1], y: [0, 1] },
+value: 0, 
+title: { text: "Weekly Washing Frequency" },
+type: "indicator",
+mode: "gauge",
+gauge: {
+axis: { range: [0, 9] }, 
+bar: { color: '#337AB7' } 
+},
+}
+];
+
+const gaugeLayout = { width: 400, height: 300, margin: { t: 25, b: 25, r: 25, l: 25 } };
+
+// Initialize the page with default subject data
+updateCharts(defaultSubjectID)
+.catch(function(error) {
+console.error("Error fetching data:", error);
+});
 });
